@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Gym Tracker</title>
+  
+  <!-- Configurazione per installazione su iPhone (PWA) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Gym Tracker">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Intestazione App -->
+  <header>
+    <h1>Gym Tracker</h1>
+    <div id="timer-display">Recupero: 00:00</div>
+  </header>
+
+  <main>
+    <!-- Sezione Timer Rapido -->
+    <section class="card">
+      <h3>Timer Recupero</h3>
+      <div class="timer-buttons">
+        <button onclick="startTimer(60)">1m</button>
+        <button onclick="startTimer(90)">1m 30s</button>
+        <button onclick="startTimer(120)">2m</button>
+        <button onclick="stopTimer()" class="btn-danger">Stop</button>
+      </div>
+    </section>
+
+    <!-- Sezione Aggiungi Esercizio -->
+    <section class="card">
+      <h3>Aggiungi Esercizio</h3>
+      <form id="workout-form">
+        <input type="text" id="exercise" placeholder="Es. Panca Piana" required>
+        <div class="row">
+          <input type="number" id="sets" placeholder="Serie" required>
+          <input type="number" id="reps" placeholder="Reps" required>
+          <input type="number" step="0.5" id="weight" placeholder="Kg" required>
+        </div>
+        <button type="submit" class="btn-primary">Salva Esercizio</button>
+      </form>
+    </section>
+
+    <!-- Lista Esercizi Salvati -->
+    <section class="card">
+      <div class="section-header">
+        <h3>Allenamento di Oggi</h3>
+        <button onclick="clearWorkout()" class="btn-clear">Svuota</button>
+      </div>
+      <ul id="workout-list"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
