@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Gym Tracker</title>
+  
+  <!-- Configurazione per installazione su iPhone (PWA) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Gym Tracker">
+
+  <!-- GRAFICA (CSS) -->
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --accent-color: #0A84FF;
+      --danger-color: #FF453A;
+      --text-main: #FFFFFF;
+      --text-sub: #A0A0A0;
+      --border-color: #2c2c2e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px 15px 40px 15px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    #timer-display {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--accent-color);
+      margin-top: 5px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+      border: 1px solid var(--border-color);
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+    }
+
+    .timer-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    button {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:active {
+      opacity: 0.8;
+    }
+
+    .btn-danger {
+      background-color: var(--danger-color);
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn-clear {
+      background: none;
+      border: none;
+      color: var(--danger-color);
+      font-size: 0.85rem;
+      padding: 0;
+    }
+
+    form input {
+      width: 100%;
+      padding: 12px;
+      background-color: #2c2c2e;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: white;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    form input::placeholder {
+      color: var(--text-sub);
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .row input {
+      flex: 1;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    #workout-list {
+      list-style: none;
+    }
+
+    #workout-list li {
+      background-color: #2c2c2e;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #workout-list li .ex-title {
+      font-weight: bold;
+    }
+
+    #workout-list li .ex-details {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Intestazione App -->
+  <header>
+    <h1>Gym Tracker</h1>
+    <div id="timer-display">Recupero: 00:00</div>
+  </header>
+
+  <main>
+    <!-- Sezione Timer Rapido -->
+    <section class="card">
+      <h3>Timer Recupero</h3>
+      <div class="timer-buttons">
+        <button onclick="startTimer(60)">1m</button>
+        <button onclick="startTimer(90)">1m 30s</button>
+        <button onclick="startTimer(120)">2m</button>
+        <button onclick="stopTimer()" class="btn-danger">Stop</button>
+      </div>
+    </section>
+
+    <!-- Sezione Aggiungi Esercizio -->
+    <section class="card">
+      <h3>Aggiungi Esercizio</h3>
+      <form id="workout-form">
+        <input type="text" id="exercise" placeholder="Es. Panca Piana" required>
+        <div class="row">
+          <input type="number" id="sets" placeholder="Serie" required>
+          <input type="number" id="reps" placeholder="Reps" required>
+          <input type="number" step="0.5" id="weight" placeholder="Kg" required>
+        </div>
+        <button type="submit" class="btn-primary">Salva Esercizio</button>
+      </form>
+    </section>
+
+    <!-- Lista Esercizi Salvati -->
+    <section class="card">
+      <div class="section-header">
+        <h3>Allenamento di Oggi</h3>
+        <button onclick="clearWorkout()" class="btn-clear">Svuota</button>
+      </div>
+      <ul id="workout-list"></ul>
+    </section>
+  </main>
+
+  <!-- LOGICA E FUNZIONAMENTO (JavaScript) -->
+  <script>
+    let timerInterval;
+
+    function startTimer(seconds) {
+      clearInterval(timerInterval);
+      let timeLeft = seconds;
+      updateTimerDisplay(timeLeft);
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay(timeLeft);
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("Tempo di recupero terminato!");
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      document.getElementById('timer-display').innerText = "Recupero: 00:00";
+    }
+
+    function updateTimerDisplay(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const formattedMins = mins < 10 ? '0' + mins : mins;
+      const formattedSecs = secs < 10 ? '0' + secs : secs;
+      document.getElementById('timer-display').innerText = `Recupero: ${formattedMins}:${formattedSecs}`;
+    }
+
+    const form = document.getElementById('workout-form');
+    const workoutList = document.getElementById('workout-list');
+
+    let exercises = JSON.parse(localStorage.getItem('myWorkout')) || [];
+
+    function renderExercises() {
+      workoutList.innerHTML = '';
+      exercises.forEach((ex) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span class="ex-title">${ex.name}</span>
+          <span class="ex-details">${ex.sets}x${ex.reps} - ${ex.weight}kg</span>
+        `;
+        workoutList.appendChild(li);
+      });
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('exercise').value;
+      const sets = document.getElementById('sets').value;
+      const reps = document.getElementById('reps').value;
+      const weight = document.getElementById('weight').value;
+
+      exercises.push({ name, sets, reps, weight });
+      localStorage.setItem('myWorkout', JSON.stringify(exercises));
+
+      renderExercises();
+      form.reset();
+    });
+
+    function clearWorkout() {
+      if (confirm('Vuoi cancellare l\'allenamento di oggi?')) {
+        exercises = [];
+        localStorage.removeItem('myWorkout');
+        renderExercises();
+      }
+    }
+
+    renderExercises();
+  </script>
+</body>
+</html>
